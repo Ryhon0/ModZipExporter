@@ -10,6 +10,7 @@ var progressBar: ProgressBar
 var progressLabel: Label
 var currentLabel: Label
 var detectedProjects: Array[String]
+var compiledRemaps: Dictionary
 
 func _enter_tree() -> void:
 	dock = VBoxContainer.new()
@@ -103,6 +104,7 @@ var customResourceHash = ""
 var files: Array[String] = []
 func exportZip():
 	currentLabel.modulate = Color.WHITE
+	compiledRemaps = {}
 
 	var dir = dirline.text
 	var out = fileline.text
@@ -145,6 +147,7 @@ func exportZip():
 		for src in modcfg.get_section_keys("override"):
 			var remapCfg = ConfigFile.new()
 			var override = modcfg.get_value("override", src)
+			override = compiledRemaps.get(override, override)
 			remapCfg.set_value("remap", "path", override)
 			zipAddBuf(zip, src + ".remap", remapCfg.encode_to_text().to_utf8_buffer())
 		
@@ -202,6 +205,7 @@ func addFile(zip: ZIPPacker, path: String):
 			# Save remap
 			var remapCfg = ConfigFile.new()
 			remapCfg.set_value("remap", "path", binOut)
+			compiledRemaps[path] = binOut
 			zipAddBuf(zip, dir.path_join(f + ".remap"), remapCfg.encode_to_text().to_utf8_buffer())
 		else:
 			# Store the file raw
